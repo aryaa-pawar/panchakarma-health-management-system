@@ -1,0 +1,14 @@
+{
+  "name": "panchakarma-health-management-system",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w backend",
+    "frontend": "npm run dev -w frontend",
+    "backend": "npm run dev -w backend"
+  }
+}
