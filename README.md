@@ -76,12 +76,3 @@ The database has also been separated into individual files:
 - `backend/src/db/init_all.sql`
 
 Use `init_all.sql` if you want one script that installs the split files in order.
-
-## Run Guide
-
-Detailed step-by-step setup is in `backend/RUN_GUIDE.md`.
-
-## Notes
-
-- Email, SMS, Cloudinary/S3, and online payment gateway integrations are scaffolded conceptually and exposed through service placeholders so they can be connected without redesigning the app.
-- The app is intentionally modular: add branch support, WebSockets, or external integrations as feature slices.
