@@ -1,4 +1,4 @@
-# Panchakarma Health Management System
+# PrakritiOPD
 
 Full-stack clinic management platform for Ayurvedic Panchakarma operations. The repository is structured as a greenfield monorepo with:
 

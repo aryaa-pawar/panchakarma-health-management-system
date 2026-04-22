@@ -13,7 +13,7 @@ export default function MainLayout() {
             <span className="rounded-full bg-brand-forest p-2 text-white">
               <HeartPulse size={18} />
             </span>
-            Ananta Panchakarma Clinic
+            PrakritiOPD
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/" className="hover:text-brand-clay">Home</Link>

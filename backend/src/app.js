@@ -28,7 +28,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "Panchakarma HMS API" });
+  res.json({ status: "ok", service: "PrakritiOPD API" });
 });
 
 app.use("/api/auth", authRoutes);
