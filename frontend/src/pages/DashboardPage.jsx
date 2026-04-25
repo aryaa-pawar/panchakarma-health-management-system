@@ -566,18 +566,18 @@ export default function DashboardPage() {
             <section className="mt-8 grid gap-6 xl:grid-cols-2">
               <ActionCard title={editingPatientId ? "Update patient record" : "Register new patient"} description="Capture and maintain patient information with validation and audit tracking.">
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handlePatientSubmit}>
-                  <FormField label="First name" value={patientForm.firstName} onChange={(e) => setPatientForm({ ...patientForm, firstName: e.target.value })} />
-                  <FormField label="Last name" value={patientForm.lastName} onChange={(e) => setPatientForm({ ...patientForm, lastName: e.target.value })} />
+                  <FormField label="First name" required pattern="[A-Za-z\s]{2,100}" title="Use only letters and spaces" value={patientForm.firstName} onChange={(e) => setPatientForm({ ...patientForm, firstName: e.target.value })} />
+                  <FormField label="Last name" required pattern="[A-Za-z\s]{1,100}" title="Use only letters and spaces" value={patientForm.lastName} onChange={(e) => setPatientForm({ ...patientForm, lastName: e.target.value })} />
                   <FormField label="Date of birth" type="date" value={patientForm.dateOfBirth} onChange={(e) => setPatientForm({ ...patientForm, dateOfBirth: e.target.value })} />
                   <SelectField label="Gender" value={patientForm.gender} onChange={(e) => setPatientForm({ ...patientForm, gender: e.target.value })}>
                     <option>Female</option>
                     <option>Male</option>
                     <option>Other</option>
                   </SelectField>
-                  <FormField label="Email" value={patientForm.email} onChange={(e) => setPatientForm({ ...patientForm, email: e.target.value })} />
-                  <FormField label="Phone" value={patientForm.primaryPhone} onChange={(e) => setPatientForm({ ...patientForm, primaryPhone: e.target.value })} />
-                  <FormField label="City" value={patientForm.city} onChange={(e) => setPatientForm({ ...patientForm, city: e.target.value })} />
-                  <FormField label="State" value={patientForm.state} onChange={(e) => setPatientForm({ ...patientForm, state: e.target.value })} />
+                  <FormField label="Email" type="email" value={patientForm.email} onChange={(e) => setPatientForm({ ...patientForm, email: e.target.value })} />
+                  <FormField label="Phone" inputMode="numeric" pattern="\d{10}" title="Mobile number must be exactly 10 digits" value={patientForm.primaryPhone} onChange={(e) => setPatientForm({ ...patientForm, primaryPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })} />
+                  <FormField label="City" required pattern="[A-Za-z\s]{2,100}" title="Use only letters and spaces" value={patientForm.city} onChange={(e) => setPatientForm({ ...patientForm, city: e.target.value })} />
+                  <FormField label="State" required pattern="[A-Za-z\s]{2,100}" title="Use only letters and spaces" value={patientForm.state} onChange={(e) => setPatientForm({ ...patientForm, state: e.target.value })} />
                   <SelectField label="Constitution" value={patientForm.constitutionType} onChange={(e) => setPatientForm({ ...patientForm, constitutionType: e.target.value })}>
                     <option>Vata</option>
                     <option>Pitta</option>
@@ -626,10 +626,10 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </SelectField>
-                  <FormField label="Appointment date" type="datetime-local" value={appointmentForm.appointmentDate} onChange={(e) => setAppointmentForm({ ...appointmentForm, appointmentDate: e.target.value })} />
-                  <FormField label="Therapist ID" value={appointmentForm.therapistId} onChange={(e) => setAppointmentForm({ ...appointmentForm, therapistId: e.target.value })} />
-                  <FormField label="Visit type" value={appointmentForm.visitType} onChange={(e) => setAppointmentForm({ ...appointmentForm, visitType: e.target.value })} />
-                  <FormField label="Buffer minutes" type="number" value={appointmentForm.bufferMinutes} onChange={(e) => setAppointmentForm({ ...appointmentForm, bufferMinutes: e.target.value })} />
+                  <FormField label="Appointment date" required type="datetime-local" value={appointmentForm.appointmentDate} onChange={(e) => setAppointmentForm({ ...appointmentForm, appointmentDate: e.target.value })} />
+                  <FormField label="Therapist ID" inputMode="numeric" pattern="\d*" value={appointmentForm.therapistId} onChange={(e) => setAppointmentForm({ ...appointmentForm, therapistId: e.target.value.replace(/\D/g, "") })} />
+                  <FormField label="Visit type" required value={appointmentForm.visitType} onChange={(e) => setAppointmentForm({ ...appointmentForm, visitType: e.target.value })} />
+                  <FormField label="Buffer minutes" type="number" min="0" max="60" value={appointmentForm.bufferMinutes} onChange={(e) => setAppointmentForm({ ...appointmentForm, bufferMinutes: e.target.value })} />
                   <div className="md:col-span-2">
                     <TextAreaField label="Notes" value={appointmentForm.notes} onChange={(e) => setAppointmentForm({ ...appointmentForm, notes: e.target.value })} />
                   </div>
@@ -653,7 +653,7 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </SelectField>
-                  <FormField label="Doctor ID" value={treatmentPlanForm.doctorId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, doctorId: e.target.value })} />
+                  <FormField label="Doctor ID" required inputMode="numeric" pattern="\d*" value={treatmentPlanForm.doctorId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, doctorId: e.target.value.replace(/\D/g, "") })} />
                   <SelectField label="Package" value={treatmentPlanForm.packageId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, packageId: e.target.value })}>
                     <option value="">Select package</option>
                     {packages.map((pkg) => (
@@ -662,7 +662,7 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </SelectField>
-                  <FormField label="Diagnosis" value={treatmentPlanForm.diagnosis} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, diagnosis: e.target.value })} />
+                  <FormField label="Diagnosis" required value={treatmentPlanForm.diagnosis} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, diagnosis: e.target.value })} />
                   <FormField label="Recommended therapies" value={treatmentPlanForm.recommendedTherapies} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, recommendedTherapies: e.target.value })} placeholder="Abhyanga, Shirodhara" />
                   <SelectField label="Status" value={treatmentPlanForm.status} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, status: e.target.value })}>
                     <option>Draft</option>
@@ -672,7 +672,7 @@ export default function DashboardPage() {
                   </SelectField>
                   <FormField label="Start date" type="date" value={treatmentPlanForm.startDate} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, startDate: e.target.value })} />
                   <FormField label="End date" type="date" value={treatmentPlanForm.endDate} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, endDate: e.target.value })} />
-                  <FormField label="Duration (weeks)" type="number" value={treatmentPlanForm.treatmentDurationWeeks} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, treatmentDurationWeeks: e.target.value })} />
+                  <FormField label="Duration (weeks)" type="number" min="1" max="52" value={treatmentPlanForm.treatmentDurationWeeks} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, treatmentDurationWeeks: e.target.value })} />
                   <div className="md:col-span-3">
                     <TextAreaField label="Condition details" value={treatmentPlanForm.conditionDetails} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, conditionDetails: e.target.value })} />
                   </div>
@@ -690,9 +690,9 @@ export default function DashboardPage() {
             <section className="mt-6 grid gap-6 xl:grid-cols-2">
               <ActionCard title="Record therapy session" description="Complete the clinical session and update patient comfort, notes, and recommendations.">
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSessionSubmit}>
-                  <FormField label="Appointment ID" value={sessionForm.appointmentId} onChange={(e) => setSessionForm({ ...sessionForm, appointmentId: e.target.value })} />
+                  <FormField label="Appointment ID" required inputMode="numeric" pattern="\d*" value={sessionForm.appointmentId} onChange={(e) => setSessionForm({ ...sessionForm, appointmentId: e.target.value.replace(/\D/g, "") })} />
                   <FormField label="Session date" type="datetime-local" value={sessionForm.sessionDate} onChange={(e) => setSessionForm({ ...sessionForm, sessionDate: e.target.value })} />
-                  <FormField label="Comfort rating" type="number" min="1" max="5" value={sessionForm.patientComfortRating} onChange={(e) => setSessionForm({ ...sessionForm, patientComfortRating: e.target.value })} />
+                  <FormField label="Comfort rating" type="number" min="1" max="5" required value={sessionForm.patientComfortRating} onChange={(e) => setSessionForm({ ...sessionForm, patientComfortRating: e.target.value })} />
                   <FormField label="Recommendations" value={sessionForm.recommendations} onChange={(e) => setSessionForm({ ...sessionForm, recommendations: e.target.value })} />
                   <div className="md:col-span-2">
                     <TextAreaField label="Observations" value={sessionForm.observations} onChange={(e) => setSessionForm({ ...sessionForm, observations: e.target.value })} />
@@ -708,7 +708,7 @@ export default function DashboardPage() {
 
               <ActionCard title="Post inventory usage" description="Deduct oils and medicines against a therapy session with immediate stock updates.">
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handleInventoryUsageSubmit}>
-                  <FormField label="Therapy session ID" value={inventoryUsageForm.therapySessionId} onChange={(e) => setInventoryUsageForm({ ...inventoryUsageForm, therapySessionId: e.target.value })} />
+                  <FormField label="Therapy session ID" required inputMode="numeric" pattern="\d*" value={inventoryUsageForm.therapySessionId} onChange={(e) => setInventoryUsageForm({ ...inventoryUsageForm, therapySessionId: e.target.value.replace(/\D/g, "") })} />
                   <SelectField label="Inventory item" value={inventoryUsageForm.inventoryItemId} onChange={(e) => setInventoryUsageForm({ ...inventoryUsageForm, inventoryItemId: e.target.value })}>
                     <option value="">Select item</option>
                     {inventory.map((item) => (
@@ -717,7 +717,7 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </SelectField>
-                  <FormField label="Quantity used" type="number" step="0.01" value={inventoryUsageForm.quantityUsed} onChange={(e) => setInventoryUsageForm({ ...inventoryUsageForm, quantityUsed: e.target.value })} />
+                  <FormField label="Quantity used" required type="number" min="0.01" step="0.01" value={inventoryUsageForm.quantityUsed} onChange={(e) => setInventoryUsageForm({ ...inventoryUsageForm, quantityUsed: e.target.value })} />
                   <div className="md:col-span-2">
                     <button disabled={busy} className="rounded-full bg-brand-forest px-5 py-3 text-white">Log Usage</button>
                   </div>
@@ -730,7 +730,7 @@ export default function DashboardPage() {
             <section className="mt-6 grid gap-6 xl:grid-cols-2">
               <ActionCard title="Generate bill" description="Create a bill from a finished appointment using the billing procedure layer.">
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handleBillSubmit}>
-                  <FormField label="Appointment ID" value={billForm.appointmentId} onChange={(e) => setBillForm({ ...billForm, appointmentId: e.target.value })} />
+                  <FormField label="Appointment ID" required inputMode="numeric" pattern="\d*" value={billForm.appointmentId} onChange={(e) => setBillForm({ ...billForm, appointmentId: e.target.value.replace(/\D/g, "") })} />
                   <FormField label="Discount amount" type="number" value={billForm.discountAmount} onChange={(e) => setBillForm({ ...billForm, discountAmount: e.target.value })} />
                   <FormField label="Previous pending" type="number" value={billForm.previousPendingAmount} onChange={(e) => setBillForm({ ...billForm, previousPendingAmount: e.target.value })} />
                   <FormField label="Payment terms" value={billForm.paymentTerms} onChange={(e) => setBillForm({ ...billForm, paymentTerms: e.target.value })} />
@@ -742,8 +742,8 @@ export default function DashboardPage() {
 
               <ActionCard title="Record payment" description="Post collections and update receivables immediately from the reception desk.">
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handlePaymentSubmit}>
-                  <FormField label="Bill ID" value={paymentForm.billId} onChange={(e) => setPaymentForm({ ...paymentForm, billId: e.target.value })} />
-                  <FormField label="Amount paid" type="number" value={paymentForm.amountPaid} onChange={(e) => setPaymentForm({ ...paymentForm, amountPaid: e.target.value })} />
+                  <FormField label="Bill ID" required inputMode="numeric" pattern="\d*" value={paymentForm.billId} onChange={(e) => setPaymentForm({ ...paymentForm, billId: e.target.value.replace(/\D/g, "") })} />
+                  <FormField label="Amount paid" required type="number" min="0.01" value={paymentForm.amountPaid} onChange={(e) => setPaymentForm({ ...paymentForm, amountPaid: e.target.value })} />
                   <SelectField label="Payment mode" value={paymentForm.paymentMode} onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}>
                     <option>Cash</option>
                     <option>Card</option>

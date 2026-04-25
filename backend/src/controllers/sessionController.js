@@ -7,6 +7,8 @@ import { createAuditLog } from "../services/auditService.js";
 export const sessionValidation = [
   body("appointmentId").isInt(),
   body("status").optional().isIn(["Scheduled", "In Progress", "Completed"]),
+  body("sessionDate").optional({ values: "falsy" }).isISO8601(),
+  body("patientComfortRating").optional({ values: "falsy" }).isInt({ min: 1, max: 5 }),
   validate
 ];
 

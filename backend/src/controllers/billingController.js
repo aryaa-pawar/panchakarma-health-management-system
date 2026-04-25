@@ -8,6 +8,7 @@ export const paymentValidation = [
   body("billId").isInt(),
   body("amountPaid").isFloat({ gt: 0 }),
   body("paymentMode").isIn(["Cash", "Card", "UPI", "Bank Transfer", "Cheque", "Insurance"]),
+  body("referenceNumber").optional({ values: "falsy" }).trim().isLength({ max: 120 }),
   validate
 ];
 
@@ -15,6 +16,7 @@ export const billGenerationValidation = [
   body("appointmentId").isInt(),
   body("discountAmount").optional().isFloat({ min: 0 }),
   body("previousPendingAmount").optional().isFloat({ min: 0 }),
+  body("paymentTerms").optional({ values: "falsy" }).trim().isLength({ min: 3, max: 255 }),
   validate
 ];
 

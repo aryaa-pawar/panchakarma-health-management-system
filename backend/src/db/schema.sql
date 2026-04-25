@@ -20,6 +20,8 @@ CREATE TABLE users (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_users_email CHECK (email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
+  CONSTRAINT chk_users_phone CHECK (phone IS NULL OR phone REGEXP '^[0-9]{10}$'),
   CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
@@ -71,6 +73,11 @@ CREATE TABLE patients (
   family_group_code VARCHAR(50) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_patients_email CHECK (email IS NULL OR email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),
+  CONSTRAINT chk_patients_phone CHECK (primary_phone IS NULL OR primary_phone REGEXP '^[0-9]{10}$'),
+  CONSTRAINT chk_patients_emergency_phone CHECK (emergency_contact_phone IS NULL OR emergency_contact_phone REGEXP '^[0-9]{10}$'),
+  CONSTRAINT chk_patients_city CHECK (city IS NULL OR city REGEXP '^[A-Za-z ]+$'),
+  CONSTRAINT chk_patients_state CHECK (state IS NULL OR state REGEXP '^[A-Za-z ]+$'),
   CONSTRAINT fk_patients_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -202,7 +209,9 @@ CREATE TABLE suppliers (
   phone VARCHAR(30) NULL,
   email VARCHAR(150) NULL,
   payment_terms VARCHAR(255) NULL,
-  quality_feedback TEXT NULL
+  quality_feedback TEXT NULL,
+  CONSTRAINT chk_suppliers_phone CHECK (phone IS NULL OR phone REGEXP '^[0-9]{10}$'),
+  CONSTRAINT chk_suppliers_email CHECK (email IS NULL OR email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
 );
 
 CREATE TABLE inventory_items (
@@ -491,8 +500,14 @@ CREATE PROCEDURE sp_register_patient(
   IN p_gender VARCHAR(10),
   IN p_email VARCHAR(150),
   IN p_primary_phone VARCHAR(25),
+  IN p_emergency_contact_name VARCHAR(150),
+  IN p_emergency_contact_phone VARCHAR(25),
+  IN p_address_line1 VARCHAR(255),
+  IN p_city VARCHAR(100),
+  IN p_state VARCHAR(100),
   IN p_constitution_type VARCHAR(20),
   IN p_allergies TEXT,
+  IN p_current_medications TEXT,
   IN p_medical_history TEXT,
   IN p_segment VARCHAR(20),
   IN p_lifecycle_stage VARCHAR(20),
@@ -501,11 +516,13 @@ CREATE PROCEDURE sp_register_patient(
 BEGIN
   INSERT INTO patients (
     patient_code, first_name, last_name, date_of_birth, gender, email, primary_phone,
-    constitution_type, allergies, medical_history, segment, lifecycle_stage, referral_source
+    emergency_contact_name, emergency_contact_phone, address_line1, city, state,
+    constitution_type, allergies, current_medications, medical_history, segment, lifecycle_stage, referral_source
   ) VALUES (
     CONCAT('PAT', DATE_FORMAT(NOW(), '%Y%m%d'), LPAD(FLOOR(1000 + RAND() * 8999), 4, '0')),
     p_first_name, p_last_name, p_date_of_birth, p_gender, p_email, p_primary_phone,
-    p_constitution_type, p_allergies, p_medical_history, COALESCE(p_segment, 'New'),
+    p_emergency_contact_name, p_emergency_contact_phone, p_address_line1, p_city, p_state,
+    p_constitution_type, p_allergies, p_current_medications, p_medical_history, COALESCE(p_segment, 'New'),
     COALESCE(p_lifecycle_stage, 'Intake'), p_referral_source
   );
 

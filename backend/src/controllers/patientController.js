@@ -5,10 +5,18 @@ import { validate } from "../middlewares/validateMiddleware.js";
 import { createAuditLog } from "../services/auditService.js";
 
 export const patientValidation = [
-  body("firstName").trim().notEmpty(),
-  body("lastName").trim().notEmpty(),
+  body("firstName").trim().matches(/^[A-Za-z\s]+$/).isLength({ min: 2, max: 100 }),
+  body("lastName").trim().matches(/^[A-Za-z\s]+$/).isLength({ min: 1, max: 100 }),
+  body("dateOfBirth").optional({ values: "falsy" }).isISO8601().toDate(),
   body("gender").isIn(["Male", "Female", "Other"]),
+  body("email").optional({ values: "falsy" }).trim().normalizeEmail().isEmail(),
+  body("primaryPhone").optional({ values: "falsy" }).matches(/^\d{10}$/),
+  body("emergencyContactPhone").optional({ values: "falsy" }).matches(/^\d{10}$/),
+  body("city").optional({ values: "falsy" }).trim().matches(/^[A-Za-z\s]+$/).isLength({ min: 2, max: 100 }),
+  body("state").optional({ values: "falsy" }).trim().matches(/^[A-Za-z\s]+$/).isLength({ min: 2, max: 100 }),
   body("constitutionType").optional().isIn(["Vata", "Pitta", "Kapha", "Vata-Pitta", "Pitta-Kapha", "Vata-Kapha", "Tri-dosha"]),
+  body("segment").optional({ values: "falsy" }).isIn(["New", "Recurring", "VIP"]),
+  body("lifecycleStage").optional({ values: "falsy" }).isIn(["Intake", "Treatment", "Follow-up", "Discharged"]),
   validate
 ];
 
@@ -65,8 +73,14 @@ export const createPatient = asyncHandler(async (req, res) => {
       payload.gender,
       payload.email || null,
       payload.primaryPhone || null,
+      payload.emergencyContactName || null,
+      payload.emergencyContactPhone || null,
+      payload.addressLine1 || null,
+      payload.city || null,
+      payload.state || null,
       payload.constitutionType || null,
       payload.allergies || null,
+      payload.currentMedications || null,
       payload.medicalHistory || null,
       payload.segment || "New",
       payload.lifecycleStage || "Intake",

@@ -8,6 +8,10 @@ export const treatmentPlanValidation = [
   body("patientId").isInt(),
   body("doctorId").isInt(),
   body("diagnosis").trim().notEmpty(),
+  body("packageId").optional({ values: "falsy" }).isInt(),
+  body("treatmentDurationWeeks").optional({ values: "falsy" }).isInt({ min: 1, max: 52 }),
+  body("startDate").optional({ values: "falsy" }).isISO8601(),
+  body("endDate").optional({ values: "falsy" }).isISO8601(),
   body("status").optional().isIn(["Draft", "Active", "Completed", "Cancelled"]),
   validate
 ];

@@ -6,7 +6,12 @@ import { createAuditLog } from "../services/auditService.js";
 
 export const appointmentValidation = [
   body("patientId").isInt(),
+  body("treatmentPlanId").optional({ values: "falsy" }).isInt(),
+  body("therapyId").optional({ values: "falsy" }).isInt(),
+  body("therapistId").optional({ values: "falsy" }).isInt(),
   body("appointmentDate").isISO8601(),
+  body("visitType").optional({ values: "falsy" }).trim().isLength({ min: 3, max: 100 }),
+  body("bufferMinutes").optional({ values: "falsy" }).isInt({ min: 0, max: 60 }),
   body("status").optional().isIn(["Scheduled", "Completed", "Cancelled", "No-show", "In Progress"]),
   validate
 ];

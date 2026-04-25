@@ -34,6 +34,8 @@ export default function LoginPage() {
         <label className="mb-4 block">
           <span className="mb-2 block text-sm text-slate-600">Email</span>
           <input
+            type="email"
+            required
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-forest"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -43,6 +45,8 @@ export default function LoginPage() {
           <span className="mb-2 block text-sm text-slate-600">Password</span>
           <input
             type="password"
+            required
+            minLength={8}
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-brand-forest"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}

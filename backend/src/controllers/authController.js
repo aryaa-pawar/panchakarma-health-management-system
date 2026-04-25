@@ -8,21 +8,23 @@ import { createAuditLog } from "../services/auditService.js";
 import { createToken, loginUser } from "../services/authService.js";
 
 export const registerValidation = [
-  body("fullName").trim().notEmpty(),
-  body("email").isEmail(),
-  body("password").isLength({ min: 8 }),
+  body("fullName").trim().isLength({ min: 3, max: 150 }),
+  body("email").trim().normalizeEmail().isEmail(),
+  body("password")
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/),
   body("role").isIn(["patient", "receptionist", "therapist", "doctor", "admin"]),
   validate
 ];
 
 export const loginValidation = [
-  body("email").isEmail(),
-  body("password").notEmpty(),
+  body("email").trim().normalizeEmail().isEmail(),
+  body("password").trim().notEmpty(),
   validate
 ];
 
 export const otpValidation = [
-  body("email").isEmail(),
+  body("email").trim().normalizeEmail().isEmail(),
   validate
 ];
 
