@@ -74,7 +74,8 @@ export default function DataTable({ title, columns, rows, actions, searchPlaceho
                 {actions ? (
                   <td className="px-3 py-3">
                     <div className="flex flex-wrap gap-2">
-                      {actions(row).map((action) => (
+                      {(actions(row) || []).length ? (
+                        actions(row).map((action) => (
                         <button
                           key={action.label}
                           type="button"
@@ -94,7 +95,10 @@ export default function DataTable({ title, columns, rows, actions, searchPlaceho
                         >
                           {action.label}
                         </button>
-                      ))}
+                        ))
+                      ) : (
+                        <span className="text-slate-400">No actions</span>
+                      )}
                     </div>
                   </td>
                 ) : null}

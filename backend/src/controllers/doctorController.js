@@ -18,7 +18,9 @@ export const treatmentPlanValidation = [
 
 export const listTreatmentPlans = asyncHandler(async (req, res) => {
   const rows = await query(
-    `SELECT tp.id, tp.diagnosis, tp.status, tp.start_date, tp.end_date,
+    `SELECT tp.id, tp.patient_id, tp.doctor_id, tp.package_id, tp.diagnosis, tp.condition_details,
+            tp.recommended_therapies, tp.treatment_duration_weeks, tp.precautions, tp.contraindications,
+            tp.expected_outcomes, tp.success_metrics, tp.status, tp.start_date, tp.end_date,
             CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
             u.full_name AS doctor_name, pkg.name AS package_name
      FROM treatment_plans tp
@@ -26,13 +28,22 @@ export const listTreatmentPlans = asyncHandler(async (req, res) => {
      JOIN doctors d ON d.id = tp.doctor_id
      JOIN users u ON u.id = d.user_id
      LEFT JOIN packages pkg ON pkg.id = tp.package_id
-     ORDER BY tp.created_at DESC`
+     ${req.user.role === "doctor" ? "WHERE d.user_id = :userId" : ""}
+     ORDER BY tp.created_at DESC`,
+    req.user.role === "doctor" ? { userId: req.user.id } : {}
   );
   res.json(rows);
 });
 
 export const createTreatmentPlan = asyncHandler(async (req, res) => {
   const payload = req.body;
+  let doctorId = payload.doctorId;
+
+  if (req.user.role === "doctor") {
+    const [doctor] = await query("SELECT id FROM doctors WHERE user_id = :userId", { userId: req.user.id });
+    doctorId = doctor?.id;
+  }
+
   const result = await query(
     `INSERT INTO treatment_plans (
       patient_id, doctor_id, package_id, diagnosis, condition_details, recommended_therapies,
@@ -45,7 +56,7 @@ export const createTreatmentPlan = asyncHandler(async (req, res) => {
     )`,
     {
       patientId: payload.patientId,
-      doctorId: payload.doctorId,
+      doctorId,
       packageId: payload.packageId || null,
       diagnosis: payload.diagnosis,
       conditionDetails: payload.conditionDetails || null,
@@ -76,10 +87,18 @@ export const createTreatmentPlan = asyncHandler(async (req, res) => {
 export const updateTreatmentPlan = asyncHandler(async (req, res) => {
   const treatmentPlanId = Number(req.params.id);
   const payload = req.body;
+  let doctorId = payload.doctorId;
+
+  if (req.user.role === "doctor") {
+    const [doctor] = await query("SELECT id FROM doctors WHERE user_id = :userId", { userId: req.user.id });
+    doctorId = doctor?.id;
+  }
 
   await query(
     `UPDATE treatment_plans
-     SET package_id = :packageId,
+     SET doctor_id = :doctorId,
+         patient_id = :patientId,
+         package_id = :packageId,
          diagnosis = :diagnosis,
          condition_details = :conditionDetails,
          recommended_therapies = :recommendedTherapies,
@@ -94,6 +113,8 @@ export const updateTreatmentPlan = asyncHandler(async (req, res) => {
      WHERE id = :treatmentPlanId`,
     {
       treatmentPlanId,
+      doctorId,
+      patientId: payload.patientId,
       packageId: payload.packageId || null,
       diagnosis: payload.diagnosis,
       conditionDetails: payload.conditionDetails || null,

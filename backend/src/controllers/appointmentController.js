@@ -1,5 +1,5 @@
 import { body } from "express-validator";
-import { callProcedure, query, queryWithAudit } from "../config/db.js";
+import { callProcedure, pool, query, queryWithAudit, withAuditContext } from "../config/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import { createAuditLog } from "../services/auditService.js";
@@ -124,6 +124,7 @@ export const updateAppointmentStatus = asyncHandler(async (req, res) => {
 
 export const deleteAppointment = asyncHandler(async (req, res) => {
   const appointmentId = Number(req.params.id);
+  const forceDelete = req.query.force === "true";
   const [appointment] = await query(
     `SELECT a.status,
             ts.id AS therapy_session_id,
@@ -137,6 +138,65 @@ export const deleteAppointment = asyncHandler(async (req, res) => {
 
   if (!appointment) {
     return res.status(404).json({ message: "Appointment not found" });
+  }
+
+  if (forceDelete && req.user.role !== "admin") {
+    return res.status(403).json({ message: "Only admin can force delete locked appointments" });
+  }
+
+  if (forceDelete) {
+    await withAuditContext(req.user.id, async (connection) => {
+      await connection.beginTransaction();
+      try {
+        await connection.query(
+          `DELETE f
+           FROM feedback f
+           JOIN therapy_sessions ts ON ts.id = f.therapy_session_id
+           WHERE ts.appointment_id = ?`,
+          [appointmentId]
+        );
+
+        await connection.query(
+          `DELETE siu
+           FROM session_inventory_usage siu
+           JOIN therapy_sessions ts ON ts.id = siu.therapy_session_id
+           WHERE ts.appointment_id = ?`,
+          [appointmentId]
+        );
+
+        await connection.query(
+          `DELETE p
+           FROM payments p
+           JOIN bills b ON b.id = p.bill_id
+           WHERE b.appointment_id = ?`,
+          [appointmentId]
+        );
+
+        await connection.query("DELETE FROM bills WHERE appointment_id = ?", [appointmentId]);
+        await connection.query("DELETE FROM therapy_sessions WHERE appointment_id = ?", [appointmentId]);
+        const [result] = await connection.query("DELETE FROM appointments WHERE id = ?", [appointmentId]);
+
+        if (!result.affectedRows) {
+          throw new Error("Appointment could not be deleted");
+        }
+
+        await connection.commit();
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      }
+    });
+
+    await createAuditLog({
+      userId: req.user.id,
+      action: "APPOINTMENT_FORCE_DELETED",
+      entityType: "appointment",
+      entityId: appointmentId,
+      metadata: { forceDelete: true },
+      ipAddress: req.ip
+    });
+
+    return res.json({ message: "Locked appointment and linked records deleted", id: appointmentId });
   }
 
   if (appointment.status === "Completed") {

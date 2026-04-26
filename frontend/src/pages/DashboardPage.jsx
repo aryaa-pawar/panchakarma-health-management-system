@@ -242,11 +242,12 @@ export default function DashboardPage() {
             });
           }
 
-          if (!actions.length) {
+          if (!actions.length && user?.role === "admin") {
             actions.push({
-              label: "Locked",
-              onClick: () => {},
-              disabled: true
+              label: "Force Delete",
+              onClick: () => handleAppointmentDelete(row.id, true),
+              variant: "danger",
+              disabled: busy
             });
           }
 
@@ -344,17 +345,19 @@ export default function DashboardPage() {
   function beginEditTreatmentPlan(plan) {
     setEditingTreatmentPlanId(plan.id);
     setTreatmentPlanForm({
-      patientId: patientOptions.find((option) => option.label.includes(plan.patient_name))?.value || "",
-      doctorId: "1",
-      packageId: "",
+      patientId: String(plan.patient_id || ""),
+      doctorId: String(plan.doctor_id || "1"),
+      packageId: String(plan.package_id || ""),
       diagnosis: plan.diagnosis || "",
-      conditionDetails: "",
-      recommendedTherapies: "",
-      treatmentDurationWeeks: "",
-      precautions: "",
-      contraindications: "",
-      expectedOutcomes: "",
-      successMetrics: "",
+      conditionDetails: plan.condition_details || "",
+      recommendedTherapies: Array.isArray(plan.recommended_therapies)
+        ? plan.recommended_therapies.join(", ")
+        : String(plan.recommended_therapies || "").replace(/^\[|\]$/g, "").replace(/"/g, ""),
+      treatmentDurationWeeks: plan.treatment_duration_weeks ? String(plan.treatment_duration_weeks) : "",
+      precautions: plan.precautions || "",
+      contraindications: plan.contraindications || "",
+      expectedOutcomes: plan.expected_outcomes || "",
+      successMetrics: plan.success_metrics || "",
       status: plan.status || "Draft",
       startDate: plan.start_date?.slice(0, 10) || "",
       endDate: plan.end_date?.slice(0, 10) || ""
@@ -392,8 +395,11 @@ export default function DashboardPage() {
     await submitAction(() => client.patch(`/appointments/${id}/status`, { status }), `Appointment moved to ${status}`);
   }
 
-  async function handleAppointmentDelete(id) {
-    await submitAction(() => client.delete(`/appointments/${id}`), "Appointment deleted successfully");
+  async function handleAppointmentDelete(id, force = false) {
+    await submitAction(
+      () => client.delete(`/appointments/${id}${force ? "?force=true" : ""}`),
+      force ? "Locked appointment deleted successfully" : "Appointment deleted successfully"
+    );
   }
 
   async function handleTreatmentPlanSubmit(event) {
@@ -653,7 +659,13 @@ export default function DashboardPage() {
                       </option>
                     ))}
                   </SelectField>
-                  <FormField label="Doctor ID" required inputMode="numeric" pattern="\d*" value={treatmentPlanForm.doctorId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, doctorId: e.target.value.replace(/\D/g, "") })} />
+                  {user?.role === "admin" ? (
+                    <FormField label="Doctor ID" required inputMode="numeric" pattern="\d*" value={treatmentPlanForm.doctorId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, doctorId: e.target.value.replace(/\D/g, "") })} />
+                  ) : (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                      Doctor is assigned automatically from the logged-in account.
+                    </div>
+                  )}
                   <SelectField label="Package" value={treatmentPlanForm.packageId} onChange={(e) => setTreatmentPlanForm({ ...treatmentPlanForm, packageId: e.target.value })}>
                     <option value="">Select package</option>
                     {packages.map((pkg) => (
@@ -680,6 +692,18 @@ export default function DashboardPage() {
                     <button disabled={busy} className="rounded-full bg-brand-forest px-5 py-3 text-white">
                       {editingTreatmentPlanId ? "Save Treatment Plan" : "Assign Treatment Plan"}
                     </button>
+                    {editingTreatmentPlanId ? (
+                      <button
+                        type="button"
+                        className="ml-3 rounded-full border px-5 py-3"
+                        onClick={() => {
+                          setEditingTreatmentPlanId(null);
+                          setTreatmentPlanForm(emptyTreatmentPlanForm);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    ) : null}
                   </div>
                 </form>
               </ActionCard>
